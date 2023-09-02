@@ -15,16 +15,20 @@ struct Handler;
 #[async_trait]
 impl EventHandler for Handler {
     async fn guild_member_addition(&self, _ctx: Context, _new_member: Member) {
+        let guild_id = _new_member.guild_id;
+        let discord_id = _new_member.user.id;
         let username = _new_member.user.name.clone();
+        
         // We define a greeting message here
         let greeting = format!("Welcome to the server, @{}!", username);
         println!("Sending welcome message to {}", username);
+        
         // We reply to the user sending the message with the greeting
         if let Err(why) = _new_member.user.direct_message(&_ctx.http, |m| {
             // We send a embed with a button to the user
             m.embed(|e| {
                 e.title("Welcome to the server!");
-                // e.description("Click the button below to get started!");
+                e.description("Click the button below to verify your Aleph Zero identity!");
                 e
             })
             // We add a button to the message hiding a link to the website
@@ -33,8 +37,9 @@ impl EventHandler for Handler {
                     a.create_button(|b| {
                         b.label(greeting);
                         b.style(serenity::model::application::component::ButtonStyle::Link);
-                        b.url("http://localhost:3000/");
+                        b.url(format!("http://localhost:3000?discordId={}&guildId={}", discord_id, guild_id));
                         b
+                        // http://localhost:3000/?discordId=219846192&guildId=1298649
                     })
                 })
             })
@@ -63,7 +68,7 @@ impl EventHandler for Handler {
                             .kind(InteractionResponseType::ChannelMessageWithSource)
                             .interaction_response_data(|message| message.content("AO!"))
                         })
-                        .await;
+                        .await.unwrap();
                     None
 
                 },
@@ -128,16 +133,24 @@ impl EventHandler for Handler {
 
 
         let guild_command = Command::create_global_application_command(&ctx.http, |command| {
-            commands::config::register(command);
+            commands::config::register(command)
+        })
+        .await;
+        println!("I created the following global slash command: {:#?}", guild_command);
+
+
+        let guild_command = Command::create_global_application_command(&ctx.http, |command| {
             commands::ao::register(command)
         })
         .await;
+        println!("I created the following global slash command: {:#?}", guild_command);
+
 
         // As soon as the discord bot gets into the server, it will create a role called "Authenticated" if not present
 
 
 
-        println!("I created the following global slash command: {:#?}", guild_command);
+        
     }
 }
 

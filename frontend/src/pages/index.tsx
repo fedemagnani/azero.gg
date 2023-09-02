@@ -54,11 +54,11 @@ export default function Home() {
   const [isSigning, setIsSigning] = useState(false)
 
   return (
-    <main className="w-full bg-black text-gray-100">
-        <div className="w-full grid place-content-center mt-72">
+    <main className="bg-black text-gray-100 -z-10">
+        <div className="flex mt-72 w-fit justify-center mx-auto">
           <NoSSR>
             <WithParticles opts={opts(isSigning)}>
-              <div className="text-center">
+              <div className="text-center -z-10">
                 <h1 className="text-center text-7xl mb-4 tracking-widest font-bold">
                   AZERO.GG
                 </h1>

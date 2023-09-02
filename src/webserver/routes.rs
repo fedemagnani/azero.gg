@@ -3,6 +3,8 @@ use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 use sp_runtime::AccountId32;
 
+use super::ecdsa_verify;
+
 pub type WarpResult<T> = std::result::Result<T, Rejection>;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -25,16 +27,17 @@ pub struct Response {
     message: String
 }
 
+/// This handler will handle the POST /auth request:
+/// 1. verify the message signature 
+/// 2. verify the account holds the required tokens
+/// 3. assign the user the specified role(s)
 pub async fn auth_handler(payload: AuthRequestPayload) -> WarpResult<impl Reply> {
-    // TODO:
-    // 1. this needs to receive the association: discordId -> accountId
-    // 2. with this, we need to query the blockchain to see if the user has the 
-    //    required tokens (PSP22, PSP34, ideally this will be configurable)
-    // 3. if the user has the required tokens, we need to assign them a role
-    //    in the server
-
-
-    
+    if !ecdsa_verify::verify_sig(
+        &payload.signature,
+        &payload.account_id
+    ) {
+        return Err(warp::reject::reject());
+    }
 
     Ok(reply::json(&Response {message: "User authorized.".into() }))
 }

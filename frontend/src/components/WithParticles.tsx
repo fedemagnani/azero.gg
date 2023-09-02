@@ -30,7 +30,7 @@ export default function WithParticles({ children, opts }: Props) {
         className="fixed inset-0 -z-10"
       />
 
-      <div>{children}</div>
+      <div className="z-10">{children}</div>
     </>
   );
 }

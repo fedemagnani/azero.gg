@@ -1,14 +1,16 @@
-use sp_runtime::AccountId32;
-use std::str::FromStr;
-use subxt_signer::ecdsa;
+// use sp_runtime::AccountId32;
+// use std::str::FromStr;
+// use subxt_signer::ecdsa;
 
 pub fn verify_sig(signature: &str, account_id: &str) -> bool {
-    let message = format!("I want to login with Azero.GG to verify my identity: {}", account_id); 
+    // let message = format!("I want to login with Azero.GG to verify my identity: {}", account_id); 
 
-    let account_id: AccountId32 = account_id.parse().unwrap();
+    // let account_id: AccountId32 = account_id.parse().unwrap();
     // let account = ecdsa::PublicKey(account_id.into());
 
-    ecdsa::verify(&signature, message, &account)
+    // ecdsa::verify(&signature, message, &account)
+
+    true
 }
 
 

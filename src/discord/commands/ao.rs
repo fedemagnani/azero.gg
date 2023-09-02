@@ -6,8 +6,10 @@ use std::fmt::Display;
 use crate::discord::commands::constants;
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand{
+    // This command can be invoked by everyone
     command
     .name("ao")
     .description("AO!")
+    .default_member_permissions(serenity::model::Permissions::empty())
 }
 
