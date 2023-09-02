@@ -22,8 +22,7 @@ thiserror = "1.0.47"
 warp = "0.3.5"
 tokio = {version="1.32.0", features = ["full"]}
 uuid = { version = "1.4.1", features = ["serde","v4"] } 
-subxt = { version = "0.31.0", features = ["native"] }
-subxt-signer = { version = "0.31.0", features = ["subxt"]}
-sp-runtime = "25.0.0"
+
 anyhow = "1.0.75"
-# substrate-api-client = { git = "https://github.com/scs/substrate-api-client", branch="master", features = ["jsonrpsee-client"]} 
+hex = "0.4.3"
+aleph_client = "3.0.0"

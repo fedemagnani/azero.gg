@@ -18,11 +18,6 @@ impl DiscordBot {
         // Configure the client with your Discord bot token in the environment.
         let token = dotenv::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
-        // // Build our client.
-        // tokio::spawn(async move {
-        //     ;
-        // })
-
         if let Err(e) = Client::builder(token, GatewayIntents::GUILD_MEMBERS)
             .event_handler(Handler)
             .await

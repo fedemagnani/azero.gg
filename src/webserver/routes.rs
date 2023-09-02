@@ -5,10 +5,9 @@ use warp::{reply, Filter, Rejection, Reply};
 use crate::discord::utils::Utils;
 use crate::state::STATE;
 use crate::webserver::ecdsa_verify;
-use sp_runtime::AccountId32;
-// use substrate_api_client::{
-//     ac_primitives::AssetRuntimeConfig, rpc::JsonrpseeClient, Api, GetAccountInformation,
-// };
+use aleph_client::pallets::system::SystemApi;
+use aleph_client::AccountId;
+use aleph_client::Connection;
 
 pub type WarpResult<T> = std::result::Result<T, Rejection>;
 
@@ -39,7 +38,7 @@ pub struct Response {
 /// 2. verify the account holds the required tokens
 pub async fn auth_handler(payload: AuthRequestPayload) -> WarpResult<impl Reply> {
     // make sure that the user account id is valid
-    let user_account_id = if let Ok(id) = AccountId32::from_str(&payload.account_id) {
+    let user_account_id = if let Ok(id) = AccountId::from_str(&payload.account_id) {
         id
     } else {
         return Err(warp::reject());
@@ -52,12 +51,12 @@ pub async fn auth_handler(payload: AuthRequestPayload) -> WarpResult<impl Reply>
 
     {
         let mut state = STATE.lock().await;
-        if let Some(_config) = state.bot_config.get(&payload.guild_id) {
+        if let Some(config) = state.bot_config.get(&payload.guild_id) {
             // NOTE: we are checking for native balance here,
             // in the future we will add support for any PSP token
             // via the `config` struct
 
-            if validate_balance(user_account_id.clone()).await {
+            if validate_native_balance(user_account_id.clone(), config.required_amount).await {
                 // register the verified user in the state
                 state
                     .verified_accounts
@@ -75,36 +74,33 @@ pub async fn auth_handler(payload: AuthRequestPayload) -> WarpResult<impl Reply>
     }))
 }
 
-pub async fn validate_balance(_user_account_id: AccountId32) -> bool {
-    // let client = JsonrpseeClient::new("wss://ws.test.azero.dev:443").unwrap();
-    // let api = Api::<AssetRuntimeConfig, _>::new(client).unwrap();
-
-    // let account_id =
-    //     AccountId32::from_str("5CkwWMbgqGJVNe6Vacaeckd8bi8zNnWDQYyh82xsZuhornWx").unwrap();
-    // let balance = api.get_account_data(&account_id).unwrap().unwrap();
-    // balance.free > 0
-    true
+pub async fn validate_native_balance(user_account_id: AccountId, required_amount: u64) -> bool {
+    let conn = Connection::new("wss://ws.test.azero.dev:443").await;
+    let free_bal = conn.get_free_balance(user_account_id, None).await;
+    free_bal > required_amount.into()
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use reqwest::StatusCode;
-//     use warp::{test::request, Filter};
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use reqwest::StatusCode;
+    use warp::{test::request, Filter};
 
-//     #[tokio::test]
-//     async fn test_auth() {
-//         let api = warp::path!("auth")
-//             .and(warp::post())
-//             .and(warp::body::content_length_limit(1024 * 16).and(warp::body::json()))
-//             .and_then(auth_handler);
-//         let resp = request()
-//             .method("POST")
-//             .path(&format!("/auth"))
-//             .body(r#"{"discordId": 123, "accountId": "456", "signature": "0x789", "guildId": 152}"#)
-//             .reply(&api)
-//             .await;
+    #[tokio::test]
+    async fn test_auth() {
+        env_logger::init();
 
-//         assert_eq!(resp.status(), StatusCode::OK);
-//     }
-// }
+        let api = warp::path!("auth")
+            .and(warp::post())
+            .and(warp::body::content_length_limit(1024 * 16).and(warp::body::json()))
+            .and_then(auth_handler);
+        let resp = request()
+            .method("POST")
+            .path(&format!("/auth"))
+            .body(r#"{"discordId": 123, "accountId": "456", "signature": "0x789", "guildId": 152}"#)
+            .reply(&api)
+            .await;
+
+        assert_eq!(resp.status(), StatusCode::OK);
+    }
+}

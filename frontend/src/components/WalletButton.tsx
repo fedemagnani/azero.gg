@@ -147,8 +147,18 @@ export default function ConnectWalletButton({ setIsSigning}: { setIsSigning: Fun
                                 signature: sig.signature,
                             };
 
-                            const res = await axios.post('http://localhost:8080/auth', body)
-                            console.log(res)
+                            const res = await fetch('http://localhost:8080/auth', {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "Accept": "application/json",
+                                },
+                                mode: "no-cors",
+                                cache: "no-cache",
+                                body: JSON.stringify(body)
+                            });
+
+                            console.log(res.json())
 
                         }).catch((err) => {
                             console.error(err)

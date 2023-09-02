@@ -13,7 +13,17 @@ pub struct WarpImpl;
 
 impl WarpImpl {
     pub async fn routes() -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
-        routes::auth_route().recover(handle_rejection)
+        let cors_route = warp::options()
+            .map(|| warp::reply::with_status("CORS PREFLIGHT OK", warp::http::StatusCode::OK))
+            .with(
+                warp::cors()
+                    .allow_any_origin()
+                    .allow_methods(vec!["POST", "OPTIONS", "GET"]),
+            );
+
+        routes::auth_route()
+            .or(cors_route)
+            .recover(handle_rejection)
     }
 }
 
@@ -29,8 +39,16 @@ impl WebServer for WarpImpl {
 
     async fn serve_http(&self, port: Self::Port) {
         let api = WarpImpl::routes().await;
-        let with_log = api.with(warp::log("api"));
+
+        let cors = warp::cors()
+            .allow_any_origin()
+            .allow_methods(vec!["POST", "OPTIONS", "GET"])
+            .build();
+
+        let with_log = api.with(warp::log("api")).with(cors);
+
         info!("Webserver listening on {}", port);
+
         warp::serve(with_log)
             .run((Ipv4Addr::UNSPECIFIED, port))
             .await;

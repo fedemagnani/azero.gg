@@ -1,6 +1,7 @@
-use crate::webserver::routes::validate_balance;
+use crate::webserver::routes::validate_native_balance;
 use serenity::http::Http;
 use serenity::model::prelude::{GuildId, UserId};
+
 pub struct Utils;
 // use tokio::time
 
@@ -41,8 +42,9 @@ impl Utils {
                 let state = crate::state::STATE.lock().await;
                 let account = state.verified_accounts.get(&id.user.id.0);
                 if let Some(account) = account {
-                    let condition = validate_balance(account.clone()).await;
-                    if condition != true {
+                    let condition = validate_native_balance(account.clone(), 0).await;
+                    // let condition = true;
+                    if !condition {
                         // We need to kick the user
                         if let Err(why) = id.kick(&http).await {
                             eprintln!("Failed to kick user: {:?}", why);
