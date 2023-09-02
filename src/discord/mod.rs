@@ -139,13 +139,6 @@ impl EventHandler for Handler {
         println!("I created the following global slash command: {:#?}", guild_command);
 
 
-        let guild_command = Command::create_global_application_command(&ctx.http, |command| {
-            commands::ao::register(command)
-        })
-        .await;
-        println!("I created the following global slash command: {:#?}", guild_command);
-
-
         // As soon as the discord bot gets into the server, it will create a role called "Authenticated" if not present
 
 
