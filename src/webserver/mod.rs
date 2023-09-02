@@ -1,20 +1,19 @@
-use warp::{Filter, Rejection, Reply};
-use std::net::Ipv4Addr;
 use async_trait::async_trait;
+use log::{error, info};
 use serde::{Deserialize, Serialize};
+use std::net::Ipv4Addr;
 use thiserror::Error;
-use log::{error,info};
+use warp::{Filter, Rejection, Reply};
 
-pub mod routes;
 pub mod ecdsa_verify;
+pub mod routes;
 
 #[derive(Clone)]
 pub struct WarpImpl;
 
 impl WarpImpl {
     pub async fn routes() -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
-        routes::auth_route()
-            .recover(handle_rejection)
+        routes::auth_route().recover(handle_rejection)
     }
 }
 
@@ -23,7 +22,6 @@ pub trait WebServer {
     type Port;
     async fn serve_http(&self, port: Self::Port);
 }
-
 
 #[async_trait]
 impl WebServer for WarpImpl {
@@ -45,7 +43,6 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Rejection> {
         warp::reply::json(&Errors::InternalServerError.to_string()),
         warp::http::StatusCode::INTERNAL_SERVER_ERROR,
     ))
-    
 }
 
 #[derive(Error, Debug, Serialize, Deserialize)]

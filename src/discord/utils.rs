@@ -1,15 +1,19 @@
-use serenity::model::prelude::{GuildId, UserId};
-use serenity::http::Http;
 use crate::webserver::routes::validate_balance;
+use serenity::http::Http;
+use serenity::model::prelude::{GuildId, UserId};
 pub struct Utils;
+// use tokio::time
+
 impl Utils {
-    pub async fn assign_role(guild_id:u64, user_id:u64) {
-        let discord_token = dotenv::var("DISCORD_TOKEN").expect("Expected a token in the environment");
-        let role_name = dotenv::var("AUTH_ROLE_NAME").expect("Expected AUTH_ROLE_NAME in environment");
+    pub async fn assign_role(guild_id: u64, user_id: u64) {
+        let discord_token =
+            dotenv::var("DISCORD_TOKEN").expect("Expected a token in the environment");
+        let role_name =
+            dotenv::var("AUTH_ROLE_NAME").expect("Expected AUTH_ROLE_NAME in environment");
         let guild_id = GuildId(guild_id);
         let user_id = UserId(user_id);
         let http = Http::new(&discord_token);
-        let ids = GuildId(guild_id.0).roles(&http).await.unwrap(); 
+        let ids = GuildId(guild_id.0).roles(&http).await.unwrap();
         // we take just the values
         let mut roles = ids.values().collect::<Vec<_>>();
         // we filter the roles by name
@@ -25,17 +29,18 @@ impl Utils {
         }
     }
 
-    pub async fn purge(guild_id:u64){
-        let discord_token = dotenv::var("DISCORD_TOKEN").expect("Expected a token in the environment");
+    #[allow(unused)]
+    pub async fn purge(guild_id: u64) {
+        let discord_token =
+            dotenv::var("DISCORD_TOKEN").expect("Expected a token in the environment");
         let http = Http::new(&discord_token);
         let ids = GuildId(guild_id).members(&http, None, None).await;
         if let Ok(ids) = ids {
             for id in ids {
                 // We recover the accountID from the shared state
-                let state = crate::state::STATE.lock().unwrap();
+                let state = crate::state::STATE.lock().await;
                 let account = state.verified_accounts.get(&id.user.id.0);
                 if let Some(account) = account {
-                    let is_admin = id.roles.contains(&serenity::model::id::RoleId(1147559585943654440));
                     let condition = validate_balance(account.clone()).await;
                     if condition != true {
                         // We need to kick the user
@@ -65,3 +70,9 @@ pub async fn get_all_users() {
     println!("{:#?}", ids);
 }
 
+#[tokio::test]
+pub async fn kick_everyone() {
+    let _discord_token = dotenv::var("DISCORD_TOKEN").expect("Expected a token in the environment");
+    let guild_id = 1147497062557024289;
+    Utils::purge(guild_id).await;
+}

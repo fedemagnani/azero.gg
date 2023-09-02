@@ -1,6 +1,7 @@
 mod commands;
 pub mod utils;
 
+pub use commands::config::*;
 use serenity::async_trait;
 use serenity::model::application::command::Command;
 use serenity::model::application::interaction::{Interaction, InteractionResponseType};
@@ -9,26 +10,28 @@ use serenity::model::id::GuildId;
 use serenity::model::prelude::Member;
 use serenity::prelude::*;
 
-pub use commands::config::*;
-
 struct Handler;
 
 pub struct DiscordBot;
 impl DiscordBot {
-    pub async fn spawn() -> JoinHandle<()> {
+    pub async fn spawn() -> () {
         // Configure the client with your Discord bot token in the environment.
         let token = dotenv::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
-        // Build our client.
-        tokio::spawn(async move {
-            Client::builder(token, GatewayIntents::GUILD_MEMBERS)
+        // // Build our client.
+        // tokio::spawn(async move {
+        //     ;
+        // })
+
+        if let Err(e) = Client::builder(token, GatewayIntents::GUILD_MEMBERS)
             .event_handler(Handler)
             .await
             .expect("Error creating client")
             .start()
             .await
-            .expect("Client error")
-        })
+        {
+            log::error!("critical serenity error: {}", e);
+        }
     }
 }
 
@@ -131,11 +134,9 @@ impl EventHandler for Handler {
                 }
 
                 // Update global state
-                let mut state = crate::state::STATE.lock().unwrap();
-                // using guild_id as string, we insert the config into the state
-                state
-                    .bot_config
-                    .insert(guild_id.unwrap().to_string(), config);
+                let mut state = crate::state::STATE.lock().await;
+                // using guild_id, we insert the config into the state
+                state.bot_config.insert(guild_id.unwrap().0, config);
             }
         }
     }
@@ -160,14 +161,11 @@ impl EventHandler for Handler {
 
         // println!("I now have the following guild slash commands: {:#?}", commands);
 
-        let guild_command = Command::create_global_application_command(&ctx.http, |command| {
+        Command::create_global_application_command(&ctx.http, |command| {
             commands::config::register(command)
         })
-        .await;
-        println!(
-            "I created the following global slash command: {:#?}",
-            guild_command
-        );
+        .await
+        .unwrap();
 
         // As soon as the discord bot gets into the server, it will create a role called "Authenticated" if not present
     }
@@ -175,7 +173,6 @@ impl EventHandler for Handler {
 
 #[cfg(test)]
 mod tests {
-    use dotenv::dotenv;
 
     use super::*;
 

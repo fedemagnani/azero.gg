@@ -1,11 +1,9 @@
-
-
 #[macro_use]
 extern crate lazy_static;
 
-mod webserver;
 mod discord;
 mod state;
+mod webserver;
 
 #[tokio::main]
 async fn main() {
@@ -18,11 +16,10 @@ async fn main() {
         _ = web_server => {
             log::error!("Web server has terminated!!")
         }
-        _ = bot.start() => {
+        _ = bot => {
             log::error!("Discord bot has terminated!!")
         }
     }
 
     log::error!("Shutting down..")
-
 }
