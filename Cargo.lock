@@ -4141,6 +4141,7 @@ dependencies = [
  "secrecy",
  "sha2 0.10.7",
  "sp-core-hashing 9.0.0",
+ "subxt",
  "thiserror",
  "zeroize",
 ]
