@@ -4,7 +4,9 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use log::{error,info};
+
 pub mod routes;
+pub mod ecdsa_verify;
 
 #[derive(Clone)]
 pub struct WarpImpl;

@@ -1,16 +1,16 @@
 mod commands;
+mod utils;
 
 use serenity::async_trait;
 use serenity::model::application::command::Command;
 use serenity::model::application::interaction::{Interaction, InteractionResponseType};
 use serenity::model::gateway::Ready;
 use serenity::model::id::GuildId;
-use serenity::model::prelude::{Member, RoleId, Guild};
+use serenity::model::prelude::{Member, RoleId, Guild, Role};
 use serenity::prelude::*;
 
 pub use commands::config::*;
 struct Handler;
-
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -48,11 +48,24 @@ impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::ApplicationCommand(command) = interaction {
             println!("Received command interaction: {:#?}", command);
+            let role_name = dotenv::var("AUTH_ROLE_NAME").expect("Expected AUTH_ROLE_NAME in environment");
             let guild_id = command.guild_id;
             let content = match command.data.name.as_str() {
                 "config" => {
                     // We check the role, if the user doesn't have the admin role we return
                     Some(commands::config::run(&command.data.options).await)
+                },
+                "ao" => {
+                    // We check the role, if the user doesn't have the admin role we return
+                    command
+                    .create_interaction_response(&ctx.http, |response| {
+                        response
+                            .kind(InteractionResponseType::ChannelMessageWithSource)
+                            .interaction_response_data(|message| message.content("AO!"))
+                        })
+                        .await;
+                    None
+
                 },
                 _ => None,
             };
@@ -62,14 +75,15 @@ impl EventHandler for Handler {
                 if let Some(guild_id) = &guild_id {
                     let ids = GuildId(guild_id.0).roles(&ctx.http).await.unwrap();
                     // We check if the role "Authenticated" is present
-                    let auth_role = ids.iter().find(|(_,x)| x.name == "Authenticated");
+                    let auth_role = ids.iter().find(|(_,x)|  x.name == role_name);
                     if auth_role.is_none() {
+                        // we define the new role with name "Authenticated" and id role_auth_id
+
                         // If not, we create it
-                        let role = GuildId(guild_id.0).create_role(&ctx.http, |r| {
-                            r.name("Authenticated")
+                        GuildId(guild_id.0).create_role(&ctx.http, |r| {
+                            r.name(role_name)
                         }).await.unwrap();
                     } 
-                    // let auth_role_id = ids.iter().find(|(a,x)| x.name == "Authenticated").unwrap();
                 }
                 
 
@@ -114,7 +128,8 @@ impl EventHandler for Handler {
 
 
         let guild_command = Command::create_global_application_command(&ctx.http, |command| {
-            commands::config::register(command)
+            commands::config::register(command);
+            commands::ao::register(command)
         })
         .await;
 
@@ -143,26 +158,33 @@ mod tests {
             .event_handler(Handler)
             .await
             .expect("Error creating client");
-
         // Finally, start a single shard, and start listening to events.
         //
         // Shards will automatically attempt to reconnect, and will perform
         // exponential backoff until it reconnects.
-        
-        // if let Err(why) = client.start().await {
-        //     println!("Client error: {:?}", why);
-        // }
+        if let Err(why) = client.start().await {
+            println!("Client error: {:?}", why);
+        }
     }
 
     use serenity::model::id::{GuildId, RoleId, UserId};
     use serenity::http::Http;
 
     #[tokio::test]
-    pub async fn add_role_to0xiguana() {
+    pub async fn get_roles(){
+        let discord_token = dotenv::var("DISCORD_TOKEN").expect("Expected a token in the environment");
+        let guild_id = GuildId(1147497062557024289);
+        let http = Http::new(&discord_token);
+        let ids = GuildId(guild_id.0).roles(http).await;
+        println!("{:#?}", ids);
+    }
+
+    #[tokio::test]
+    pub async fn add_role_to_drunnn() {
     // Replace with your actual user, guild, and role IDs
-    let user_id = UserId(123456789012345678);
-    let guild_id = GuildId(987654321098765432);
-    let role_id = RoleId(123456789012345678);
+    let user_id = UserId(569965272052793344);
+    let guild_id = GuildId(1147497062557024289);
+    let role_id = RoleId(1147559585943654440);
     let discord_token = dotenv::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
     let http = Http::new(&discord_token);

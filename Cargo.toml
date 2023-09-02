@@ -19,8 +19,9 @@ reqwest = "0.11.20"
 serde = "1.0.188"
 serenity = {version="0.11.6", default-features=false, features=["client", "gateway", "rustls_backend", "model"]}
 thiserror = "1.0.47"
+warp = "0.3.5"
 tokio = {version="1.32.0", features = ["full"]}
 uuid = { version = "1.4.1", features = ["serde","v4"] } 
-warp = "0.3.5"
-subxt-signer = { git = "https://github.com/paritytech/subxt" }
+subxt = { version = "0.31.0", features = ["native"] }
+subxt-signer = { version = "0.31.0" }
 sp-runtime = "25.0.0"

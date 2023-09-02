@@ -134,13 +134,15 @@ export default function ConnectWalletButton({ setIsSigning}: { setIsSigning: Fun
 
                             // Send POST request to the service
                             const discordId = new URLSearchParams(window.location.search).get('discordId')
-                            if (!discordId) {
-                                console.error('discordId must be provided in the url')
+                            const guildId = new URLSearchParams(window.location.search).get('guildId')
+                            if (!discordId || !guildId) {
+                                console.error('discordId and guildId must be provided in the url')
                                 return
                             }
 
                             const body = {
-                                discordId: discordId,
+                                guildId,
+                                discordId,
                                 accountId: activeAccount?.address,
                                 signature: sig.signature,
                             };

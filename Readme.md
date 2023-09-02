@@ -17,6 +17,7 @@
 *  modulo: webServer
     * Creare rotta '/auth?uuid=<UUID>'
     * Creare funzione per lo spawn di un web server warp su una determinata porta
+    * luca riceve da Nic GuildID e DiscordID, si recupera il discord token da env e assegna il ruolo il cui ID è in env allo user
 
 @Nicolas:
 *  modulo: frontend
@@ -44,7 +45,7 @@
     <!-- * Bot deve avere pulsante per autenticare l'utente: ascolta gli ingressi e rispondi ai tipi che entrano -->
     <!-- * bot che entra crea ruolo "authenticated". Questo ruolo sarà assegnato all'utente se l'utente riesce ad autenticarsi -->
     <!-- * hashmap guildID -> Config of that server -->
-    * understand how to trigger event handler externally
+    <!-- * understand how to trigger event handler externally -->
 
 
 
