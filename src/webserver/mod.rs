@@ -48,8 +48,6 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Rejection> {
     
 }
 
-
-
 #[derive(Error, Debug, Serialize, Deserialize)]
 pub enum Errors {
     #[error("Internal server error.")]

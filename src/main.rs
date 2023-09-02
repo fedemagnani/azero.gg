@@ -11,5 +11,18 @@ mod state;
 async fn main() {
     dotenv::dotenv().ok();
     env_logger::init();
-    webserver::WebServer::serve_http(&webserver::WarpImpl, 8080).await;
+    let web_server = webserver::WebServer::serve_http(&webserver::WarpImpl, 8080);
+    let bot = discord::DiscordBot::spawn();
+
+    tokio::select! {
+        _ = web_server => {
+            log::error!("Web server has terminated!!")
+        }
+        _ = bot.start() => {
+            log::error!("Discord bot has terminated!!")
+        }
+    }
+
+    log::error!("Shutting down..")
+
 }

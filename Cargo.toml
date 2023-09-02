@@ -25,3 +25,5 @@ uuid = { version = "1.4.1", features = ["serde","v4"] }
 subxt = { version = "0.31.0", features = ["native"] }
 subxt-signer = { version = "0.31.0", features = ["subxt"]}
 sp-runtime = "25.0.0"
+anyhow = "1.0.75"
+substrate-api-client = "0.11.0"
