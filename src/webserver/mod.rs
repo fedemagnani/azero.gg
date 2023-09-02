@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use log::{error, info};
+use reqwest::Method;
 use serde::{Deserialize, Serialize};
 use std::net::Ipv4Addr;
 use thiserror::Error;
@@ -13,17 +14,20 @@ pub struct WarpImpl;
 
 impl WarpImpl {
     pub async fn routes() -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
-        let cors_route = warp::options()
-            .map(|| warp::reply::with_status("CORS PREFLIGHT OK", warp::http::StatusCode::OK))
-            .with(
-                warp::cors()
-                    .allow_any_origin()
-                    .allow_methods(vec!["POST", "OPTIONS", "GET"]),
-            );
+        let cors = warp::cors()
+            .allow_any_origin()
+            .allow_headers(vec![
+                "User-Agent",
+                "Sec-Fetch-Mode",
+                "Referer",
+                "Origin",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers",
+            ])
+            .allow_methods(&[Method::PUT, Method::DELETE, Method::POST, Method::GET])
+            .build();
 
-        routes::auth_route()
-            .or(cors_route)
-            .recover(handle_rejection)
+        routes::auth_route().with(cors)
     }
 }
 
@@ -40,12 +44,13 @@ impl WebServer for WarpImpl {
     async fn serve_http(&self, port: Self::Port) {
         let api = WarpImpl::routes().await;
 
-        let cors = warp::cors()
-            .allow_any_origin()
-            .allow_methods(vec!["POST", "OPTIONS", "GET"])
-            .build();
+        // let cors = warp::cors()
+        //     .allow_any_origin()
+        //     .allow_methods(vec!["POST", "OPTIONS", "GET"])
+        //     .build();
 
-        let with_log = api.with(warp::log("api")).with(cors);
+        let with_log = api.with(warp::log("api"));
+        // .with(cors);
 
         info!("Webserver listening on {}", port);
 

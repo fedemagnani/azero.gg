@@ -56,6 +56,7 @@ pub async fn auth_handler(payload: AuthRequestPayload) -> WarpResult<impl Reply>
             // in the future we will add support for any PSP token
             // via the `config` struct
 
+            log::info!("validating balance");
             if validate_native_balance(user_account_id.clone(), config.required_amount).await {
                 // register the verified user in the state
                 state
@@ -63,6 +64,7 @@ pub async fn auth_handler(payload: AuthRequestPayload) -> WarpResult<impl Reply>
                     .entry(payload.discord_id)
                     .or_insert_with(|| user_account_id);
 
+                log::info!("assigning role");
                 // assign the user the defined role on Discord
                 Utils::assign_role(payload.guild_id, payload.discord_id).await;
             }
@@ -77,6 +79,7 @@ pub async fn auth_handler(payload: AuthRequestPayload) -> WarpResult<impl Reply>
 pub async fn validate_native_balance(user_account_id: AccountId, required_amount: u64) -> bool {
     let conn = Connection::new("wss://ws.test.azero.dev:443").await;
     let free_bal = conn.get_free_balance(user_account_id, None).await;
+    log::info!("verifying balance: {}", free_bal.clone());
     free_bal > required_amount.into()
 }
 

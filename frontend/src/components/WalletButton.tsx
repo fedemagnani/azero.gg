@@ -126,7 +126,6 @@ export default function ConnectWalletButton({ setIsSigning}: { setIsSigning: Fun
                             data: getMessageToSign(),
                             type: "bytes"
                         }
-                        console.log(`debug payload`, payload)
 
                         activeSigner?.signRaw?.(payload).then(async (sig) => {
                             setHasSigned(true)
@@ -141,24 +140,37 @@ export default function ConnectWalletButton({ setIsSigning}: { setIsSigning: Fun
                             }
 
                             const body = {
-                                guildId,
-                                discordId,
+                                guildId: Number(guildId),
+                                discordId: Number(discordId),
                                 accountId: activeAccount?.address,
                                 signature: sig.signature,
                             };
+                            console.log("BODY: ", body)
 
-                            const res = await fetch('http://localhost:8080/auth', {
+                            // const res = await axios.request({
+                            //     url: 'http://localhost:8080/auth',
+                            //     method: "POST",
+                            //     withCredentials: false,
+                            //     headers: {
+                            //         "Access-Control-Allow-Origin": "*",
+                            //         "Content-Type": "application/json",
+                            //         "Accept": "application/json",
+                            //     },
+                            //     data: body,
+                            // });
+                            // console.log(res)
+
+                            const res = await fetch("http://localhost:8080/auth", {
                                 method: "POST",
                                 headers: {
+                                    "Access-Control-Allow-Origin": "*",
                                     "Content-Type": "application/json",
                                     "Accept": "application/json",
                                 },
-                                mode: "no-cors",
-                                cache: "no-cache",
-                                body: JSON.stringify(body)
-                            });
-
-                            console.log(res.json())
+                                body: JSON.stringify(body),
+                                mode: "cors",
+                            })
+                            console.log(await res.json())
 
                         }).catch((err) => {
                             console.error(err)
