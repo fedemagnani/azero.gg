@@ -40,9 +40,11 @@
     <!-- * Bot deve essere invitato alla chat -->
     * "autocomplete" per pescare token da json file (USDC=>0x1234,...)  
     <!-- * Se rich embed con bottone non è possibile magari facciamo slash command \auth disponibile accessibile a tutti i profili aventi il ruolo non-verificato -->
-    * slash command config accessibile solo a chi ha il ruolo admin
-    * Bot deve avere pulsante per autenticare l'utente: ascolta gli ingressi e rispondi ai tipi che entrano
-    * bot che entra crea ruolo "authenticated". Questo ruolo sarà assegnato all'utente se l'utente riesce ad autenticarsi
+    <!-- * slash command config accessibile solo a chi ha il ruolo admin -->
+    <!-- * Bot deve avere pulsante per autenticare l'utente: ascolta gli ingressi e rispondi ai tipi che entrano -->
+    <!-- * bot che entra crea ruolo "authenticated". Questo ruolo sarà assegnato all'utente se l'utente riesce ad autenticarsi -->
+    <!-- * hashmap guildID -> Config of that server -->
+    * understand how to trigger event handler externally
 
 
 

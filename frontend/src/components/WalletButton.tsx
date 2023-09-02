@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import axios from "axios";
 import { 
     Button, HStack, Link, Menu, MenuButton, 
     MenuDivider, MenuItem, MenuList, Text, VStack 
@@ -11,7 +12,7 @@ import { AiOutlineCheckCircle, AiOutlineDisconnect } from 'react-icons/ai'
 import { FiChevronDown, FiExternalLink } from 'react-icons/fi'
 import { SignerPayloadRaw } from '@polkadot/types/types'
 
-export default function ConnectWalletButton() {
+export default function ConnectWalletButton({ setIsSigning}: { setIsSigning: Function}) {
     const {
         activeChain,
         switchActiveChain,
@@ -30,19 +31,16 @@ export default function ConnectWalletButton() {
         allSubstrateWallets.filter((w) => w.platforms.includes(SubstrateWalletPlatform.Browser)),
       )
 
-      async function connectWallet(w: SubstrateWallet) {
-        const discordId = new URLSearchParams(window.location.search).get('discordId')
-        if (!discordId) {
-            console.error('discordId must be provided in the url')
-            return
-        }
+      function getMessageToSign() {
+        return `I want to login with Azero.GG to verify my identity: ${activeAccount?.address}`
+      }
 
+      async function connectWallet(w: SubstrateWallet) {
         if (connect) {
             await connect(undefined, w);
             const address = activeAccount?.address;
             if (address) {
                 console.log('Connected to wallet with address: ', address)
-                await fetch(`http://localhost:8080/auth/${discordId}/${address}`)
             } else {
                 console.error('No address found in active account')
             }
@@ -55,6 +53,10 @@ export default function ConnectWalletButton() {
     if (!activeAccount) {
         return (
             <Menu>
+                <h2 className="text-gray-300 text-lg mb-4">
+                    Please sign in with your wallet to verify your on-chain identity
+                </h2>
+
                 <MenuButton
                 as={Button}
                 isLoading={isConnecting}
@@ -70,18 +72,15 @@ export default function ConnectWalletButton() {
 
                 <MenuList bgColor="blackAlpha.500" borderColor="whiteAlpha.500" rounded="xl">
                 {/* Installed Wallets */}
-                {
-                    !activeAccount &&
+                {!activeAccount &&
                     browserWallets.map((w) =>
                     isWalletInstalled(w) ? (
                         <MenuItem
                         key={w.id}
-                        onClick={() => {
-                            connectWallet(w)
-                        }}
+                        onClick={() => connectWallet(w)}
                         tw="bg-transparent hocus:bg-gray-500"
                         >
-                        {w.name}
+                            {w.name}
                         </MenuItem>
                     ) : (
                         <MenuItem
@@ -90,38 +89,65 @@ export default function ConnectWalletButton() {
                         key={w.id}
                         tw="bg-transparent opacity-50 hocus:bg-gray-600 hover:(no-underline opacity-70)"
                         >
-                        <VStack align="start" spacing={0}>
-                            <HStack>
-                            <Text>{w.name}</Text>
-                            <FiExternalLink size={16} />
-                            </HStack>
-                            <Text fontSize="xs">Not installed</Text>
-                        </VStack>
+                            <VStack align="start" spacing={0}>
+                                <HStack>
+                                    <Text>{w.name}</Text>
+                                    <FiExternalLink size={16} />
+                                </HStack>
+                                <Text fontSize="xs">Not installed</Text>
+                            </VStack>
                         </MenuItem>
-                    ),
-                    )}
+                    ))}
                 </MenuList>
             </Menu>
         )
     }
 
-    
+    // Wallet is connected
     else {
         // Signature is required
         if (!hasSigned) {
             return (
                 <div className="text-center">
-                    {/* <Button colorScheme="orange" onClick={() => disconnect?.()}>Disconnect</Button> */}
+                    <h2 className="text-gray-300 text-lg mb-4">
+                        Please sign the message below:
+                    </h2>
+
+                    <h3 className="text-gray-300 text-md mb-4 p-3 border border-gray-700 
+                        rounded-xl max-w-lg">
+                        {getMessageToSign()}
+                    </h3>
+
                     <Button colorScheme="orange" onClick={async () => {
+                        setIsSigning(true)
+
                         let payload: SignerPayloadRaw = {
                             address: activeAccount?.address,
-                            data: "I want to login with Azero.GG to verify my identity!",
+                            data: getMessageToSign(),
                             type: "bytes"
                         }
+                        console.log(`debug payload`, payload)
 
-                        activeSigner?.signRaw?.(payload).then((sig) => {
-                            console.log(sig)
+                        activeSigner?.signRaw?.(payload).then(async (sig) => {
                             setHasSigned(true)
+                            setIsSigning(false)
+
+                            // Send POST request to the service
+                            const discordId = new URLSearchParams(window.location.search).get('discordId')
+                            if (!discordId) {
+                                console.error('discordId must be provided in the url')
+                                return
+                            }
+
+                            const body = {
+                                discordId: discordId,
+                                accountId: activeAccount?.address,
+                                signature: sig.signature,
+                            };
+
+                            const res = await axios.post('http://localhost:8080/auth', body)
+                            console.log(res)
+
                         }).catch((err) => {
                             console.error(err)
                         })
@@ -135,8 +161,19 @@ export default function ConnectWalletButton() {
         // user has signed in, show the success message
         else {
             return (
-                <div>
-
+                <div className="text-center">
+                    <div className="mt-4 mx-auto mb-6">
+                        <AiOutlineCheckCircle size={50} className="mx-auto" />
+                        <h2 className="text-2xl font-bold">Success!</h2>
+                        <p className="mt-2">You have successfully logged in with your wallet.</p>
+                    </div>
+                    <Button colorScheme="orange" onClick={() => {
+                        disconnect?.()
+                        setHasSigned(false)
+                    }}>
+                        <AiOutlineDisconnect size={20} />
+                        <span className="ml-2">Disconnect</span>
+                    </Button>
                 </div>
             )
         }

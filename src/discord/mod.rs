@@ -1,13 +1,11 @@
 mod commands;
 
-use std::env;
-
 use serenity::async_trait;
 use serenity::model::application::command::Command;
 use serenity::model::application::interaction::{Interaction, InteractionResponseType};
 use serenity::model::gateway::Ready;
 use serenity::model::id::GuildId;
-use serenity::model::prelude::Member;
+use serenity::model::prelude::{Member, RoleId, Guild};
 use serenity::prelude::*;
 
 pub use commands::config::*;
@@ -50,13 +48,30 @@ impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::ApplicationCommand(command) = interaction {
             println!("Received command interaction: {:#?}", command);
-
+            let guild_id = command.guild_id;
             let content = match command.data.name.as_str() {
-                "config" => Some(commands::config::run(&command.data.options).await),
+                "config" => {
+                    // We check the role, if the user doesn't have the admin role we return
+                    Some(commands::config::run(&command.data.options).await)
+                },
                 _ => None,
             };
 
             if let Some(config) = content {
+                // we get the role Ids of the discord server
+                if let Some(guild_id) = &guild_id {
+                    let ids = GuildId(guild_id.0).roles(&ctx.http).await.unwrap();
+                    // We check if the role "Authenticated" is present
+                    let auth_role = ids.iter().find(|(_,x)| x.name == "Authenticated");
+                    if auth_role.is_none() {
+                        // If not, we create it
+                        let role = GuildId(guild_id.0).create_role(&ctx.http, |r| {
+                            r.name("Authenticated")
+                        }).await.unwrap();
+                    } 
+                    // let auth_role_id = ids.iter().find(|(a,x)| x.name == "Authenticated").unwrap();
+                }
+                
 
                 if let Err(why) = command
                     .create_interaction_response(&ctx.http, |response| {
@@ -71,7 +86,8 @@ impl EventHandler for Handler {
 
                 // Update global state
                 let mut state = crate::state::STATE.lock().unwrap();
-                state.bot_config = config;
+                // using guild_id as string, we insert the config into the state
+                state.bot_config.insert(guild_id.unwrap().to_string(), config);
             }
         }
     }
@@ -96,10 +112,15 @@ impl EventHandler for Handler {
 
         // println!("I now have the following guild slash commands: {:#?}", commands);
 
+
         let guild_command = Command::create_global_application_command(&ctx.http, |command| {
             commands::config::register(command)
         })
         .await;
+
+        // As soon as the discord bot gets into the server, it will create a role called "Authenticated" if not present
+
+
 
         println!("I created the following global slash command: {:#?}", guild_command);
     }
@@ -127,8 +148,31 @@ mod tests {
         //
         // Shards will automatically attempt to reconnect, and will perform
         // exponential backoff until it reconnects.
-        if let Err(why) = client.start().await {
-            println!("Client error: {:?}", why);
+        
+        // if let Err(why) = client.start().await {
+        //     println!("Client error: {:?}", why);
+        // }
+    }
+
+    use serenity::model::id::{GuildId, RoleId, UserId};
+    use serenity::http::Http;
+
+    #[tokio::test]
+    pub async fn add_role_to0xiguana() {
+    // Replace with your actual user, guild, and role IDs
+    let user_id = UserId(123456789012345678);
+    let guild_id = GuildId(987654321098765432);
+    let role_id = RoleId(123456789012345678);
+    let discord_token = dotenv::var("DISCORD_TOKEN").expect("Expected a token in the environment");
+
+    let http = Http::new(&discord_token);
+
+    // Check if the user is a member of the guild (server)
+    if let Some(mut member) = guild_id.member(&http, user_id).await.ok() {
+        // Add the role to the user
+        if let Err(why) = member.add_role(&http, role_id).await {
+            eprintln!("Failed to add role to user: {:?}", why);
         }
+    }
     }
 }

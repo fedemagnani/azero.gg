@@ -4,6 +4,7 @@ use serenity::model::prelude::command::CommandOptionType;
 use std::collections::HashMap;
 use std::fmt::Display;
 use crate::discord::commands::constants;
+
 #[derive(Default, Debug, Clone)]
 pub struct Config {
     pub account_id: String,
@@ -11,6 +12,7 @@ pub struct Config {
     pub required_amount: u64,
     pub standard: String,
 }
+
 impl Display for Config {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut map = HashMap::new();
@@ -23,9 +25,11 @@ impl Display for Config {
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
+    let admin_permission = serenity::model::Permissions::ADMINISTRATOR;
     command
     .name("config")
     .description("Define your configuration for azero.gg")
+    .default_member_permissions(admin_permission)
     .create_option(|option|{
         option.name(constants::ACCOUNT_ID_KEY).description("Account ID of your token").kind(CommandOptionType::String).required(true)
     })
