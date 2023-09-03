@@ -14,20 +14,8 @@ pub struct WarpImpl;
 
 impl WarpImpl {
     pub async fn routes() -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
-        let cors = warp::cors()
-            .allow_any_origin()
-            .allow_headers(vec![
-                "User-Agent",
-                "Sec-Fetch-Mode",
-                "Referer",
-                "Origin",
-                "Access-Control-Request-Method",
-                "Access-Control-Request-Headers",
-            ])
-            .allow_methods(&[Method::PUT, Method::DELETE, Method::POST, Method::GET])
-            .build();
-
-        routes::auth_route().with(cors)
+        routes::auth_route()
+        // .with(cors)
     }
 }
 

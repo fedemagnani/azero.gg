@@ -8,13 +8,17 @@ use crate::webserver::ecdsa_verify;
 use aleph_client::pallets::system::SystemApi;
 use aleph_client::AccountId;
 use aleph_client::Connection;
+use serde_with::{serde_as, DisplayFromStr};
 
 pub type WarpResult<T> = std::result::Result<T, Rejection>;
 
+#[serde_as]
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthRequestPayload {
+    #[serde_as(as = "DisplayFromStr")]
     discord_id: u64,
+    #[serde_as(as = "DisplayFromStr")]
     guild_id: u64,
     account_id: String,
     signature: String,
@@ -37,6 +41,8 @@ pub struct Response {
 /// 1. verify the message signature
 /// 2. verify the account holds the required tokens
 pub async fn auth_handler(payload: AuthRequestPayload) -> WarpResult<impl Reply> {
+    println!("auth_handler: {:?}", payload);
+
     // make sure that the user account id is valid
     let user_account_id = if let Ok(id) = AccountId::from_str(&payload.account_id) {
         id
@@ -44,6 +50,7 @@ pub async fn auth_handler(payload: AuthRequestPayload) -> WarpResult<impl Reply>
         return Err(warp::reject());
     };
 
+    println!("verifying signature");
     // check that the wallet signature is valid via ECDSA verification
     if !ecdsa_verify::verify_sig(&payload.signature, &payload.account_id) {
         return Err(warp::reject());
@@ -51,12 +58,20 @@ pub async fn auth_handler(payload: AuthRequestPayload) -> WarpResult<impl Reply>
 
     {
         let mut state = STATE.lock().await;
+
+        println!(
+            "U64 max: {} checking guild id match: {} == {:?}",
+            u64::MAX,
+            payload.guild_id,
+            state.bot_config.keys().collect::<Vec<_>>()
+        );
+
         if let Some(config) = state.bot_config.get(&payload.guild_id) {
             // NOTE: we are checking for native balance here,
             // in the future we will add support for any PSP token
             // via the `config` struct
 
-            log::info!("validating balance");
+            println!("validating balance");
             if validate_native_balance(user_account_id.clone(), config.required_amount).await {
                 // register the verified user in the state
                 state
@@ -64,7 +79,7 @@ pub async fn auth_handler(payload: AuthRequestPayload) -> WarpResult<impl Reply>
                     .entry(payload.discord_id)
                     .or_insert_with(|| user_account_id);
 
-                log::info!("assigning role");
+                println!("assigning role");
                 // assign the user the defined role on Discord
                 Utils::assign_role(payload.guild_id, payload.discord_id).await;
             }
