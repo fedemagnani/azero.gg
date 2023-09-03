@@ -198,11 +198,13 @@ export default function ConnectWalletButton({
                     // mode: "cors",
                   });
 
-                  const x = await res.json();
-                  if (x === "Requirements not satisfied.") {
+                  const response = await res.json();
+                  console.log("RESPONSE: ", response);
+
+                  if (response.message === "Requirements not satisfied.") {
                     setIsSuccessfulResponse(false);
                   }
-                  if (x === "User authorized.") {
+                  if (response.message === "User authorized.") {
                     setIsSuccessfulResponse(true);
                   }
                 })
