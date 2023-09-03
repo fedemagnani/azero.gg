@@ -22,7 +22,14 @@ import {
   useBalance,
   useInkathon,
 } from "@scio-labs/use-inkathon";
-import { AiOutlineCheckCircle, AiOutlineDisconnect } from "react-icons/ai";
+import {
+  AiOutlineAlert,
+  AiOutlineCheckCircle,
+  AiOutlineDisconnect,
+  AiOutlineException,
+  AiOutlineQuestion,
+  AiOutlineWarning,
+} from "react-icons/ai";
 import { FiChevronDown, FiExternalLink } from "react-icons/fi";
 import { SignerPayloadRaw } from "@polkadot/types/types";
 
@@ -247,7 +254,7 @@ export default function ConnectWalletButton({
         return (
           <div className="text-center">
             <div className="mt-4 mx-auto mb-6">
-              <AiOutlineCheckCircle size={50} className="mx-auto" />
+              <AiOutlineException size={50} className="mx-auto" />
               <h2 className="text-2xl font-bold">Sorry :(</h2>
               <p className="mt-2">
                 It looks like you don't meet the requirements of this server.
@@ -269,7 +276,7 @@ export default function ConnectWalletButton({
         return (
           <div className="text-center">
             <div className="mt-4 mx-auto mb-6">
-              <AiOutlineCheckCircle size={50} className="mx-auto" />
+              <AiOutlineQuestion size={50} className="mx-auto" />
               <h2 className="text-2xl font-bold">Success!</h2>
               <p className="mt-2">
                 You have successfully logged in with your wallet.
