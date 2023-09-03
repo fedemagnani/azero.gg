@@ -8,9 +8,6 @@ The Aleph-Zero GG is a multi-part application that allows users to join a Discor
 - [Use cases](#use-cases)
 - [Solution in a nutshell](#solution-in-a-nutshell)
 - [Usage](#usage)
-- [Configuration](#configuration)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Overview
 
