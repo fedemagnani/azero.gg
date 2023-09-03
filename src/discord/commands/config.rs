@@ -44,17 +44,13 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         .default_member_permissions(admin_permission)
         .create_option(|option| {
             option
-                .name(constants::ACCOUNT_ID_KEY)
-                .description("Account ID of your token")
+                .name(constants::STANDARD_KEY)
+                .description("Smart contract standard")
                 .kind(CommandOptionType::String)
                 .required(true)
-        })
-        .create_option(|option| {
-            option
-                .name(constants::DECIMALS_KEY)
-                .description("Decimals")
-                .kind(CommandOptionType::Integer)
-                .required(true)
+                .add_string_choice("NATIVE", "NATIVE")
+                .add_string_choice("PSP22", "PSP22")
+                .add_string_choice("PSP34", "PSP34")
         })
         .create_option(|option| {
             option
@@ -65,13 +61,17 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         })
         .create_option(|option| {
             option
-                .name(constants::STANDARD_KEY)
-                .description("Smart contract standard")
+                .name(constants::ACCOUNT_ID_KEY)
+                .description("Account ID of your token")
                 .kind(CommandOptionType::String)
-                .required(true)
-                .add_string_choice("NATIVE", "NATIVE")
-                .add_string_choice("PSP22", "PSP22")
-                .add_string_choice("PSP34", "PSP34")
+                .required(false)
+        })
+        .create_option(|option| {
+            option
+                .name(constants::DECIMALS_KEY)
+                .description("Decimals")
+                .kind(CommandOptionType::Integer)
+                .required(false)
         })
 }
 
