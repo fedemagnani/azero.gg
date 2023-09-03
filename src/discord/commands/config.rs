@@ -69,6 +69,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("Smart contract standard")
                 .kind(CommandOptionType::String)
                 .required(true)
+                .add_string_choice("NATIVE", "NATIVE")
                 .add_string_choice("PSP22", "PSP22")
                 .add_string_choice("PSP34", "PSP34")
         })

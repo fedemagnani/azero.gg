@@ -44,6 +44,9 @@ export default function ConnectWalletButton({
   } = useInkathon();
 
   const [hasSigned, setHasSigned] = useState(false);
+  const [isSuccessfulResponse, setIsSuccessfulResponse] = useState<
+    boolean | null
+  >(null);
 
   const [browserWallets] = useState(
     allSubstrateWallets.filter((w) =>
@@ -194,7 +197,14 @@ export default function ConnectWalletButton({
                     body: JSON.stringify(body),
                     // mode: "cors",
                   });
-                  console.log(await res.json());
+
+                  const x = await res.json();
+                  if (x === "Requirements not satisfied.") {
+                    setIsSuccessfulResponse(false);
+                  }
+                  if (x === "User authorized.") {
+                    setIsSuccessfulResponse(true);
+                  }
                 })
                 .catch((err) => {
                   console.error(err);
@@ -209,27 +219,73 @@ export default function ConnectWalletButton({
 
     // user has signed in, show the success message
     else {
-      return (
-        <div className="text-center">
-          <div className="mt-4 mx-auto mb-6">
-            <AiOutlineCheckCircle size={50} className="mx-auto" />
-            <h2 className="text-2xl font-bold">Success!</h2>
-            <p className="mt-2">
-              You have successfully logged in with your wallet.
-            </p>
+      if (isSuccessfulResponse === true) {
+        return (
+          <div className="text-center">
+            <div className="mt-4 mx-auto mb-6">
+              <AiOutlineCheckCircle size={50} className="mx-auto" />
+              <h2 className="text-2xl font-bold">Success!</h2>
+              <p className="mt-2">
+                You have successfully logged in with your wallet.
+              </p>
+            </div>
+            <Button
+              colorScheme="orange"
+              onClick={() => {
+                disconnect?.();
+                setHasSigned(false);
+              }}
+            >
+              <AiOutlineDisconnect size={20} />
+              <span className="ml-2">Disconnect</span>
+            </Button>
           </div>
-          <Button
-            colorScheme="orange"
-            onClick={() => {
-              disconnect?.();
-              setHasSigned(false);
-            }}
-          >
-            <AiOutlineDisconnect size={20} />
-            <span className="ml-2">Disconnect</span>
-          </Button>
-        </div>
-      );
+        );
+      } else if (isSuccessfulResponse === false) {
+        return (
+          <div className="text-center">
+            <div className="mt-4 mx-auto mb-6">
+              <AiOutlineCheckCircle size={50} className="mx-auto" />
+              <h2 className="text-2xl font-bold">Sorry :(</h2>
+              <p className="mt-2">
+                It looks like you don't meet the requirements of this server.
+              </p>
+            </div>
+            <Button
+              colorScheme="orange"
+              onClick={() => {
+                disconnect?.();
+                setHasSigned(false);
+              }}
+            >
+              <AiOutlineDisconnect size={20} />
+              <span className="ml-2">Disconnect</span>
+            </Button>
+          </div>
+        );
+      } else {
+        return (
+          <div className="text-center">
+            <div className="mt-4 mx-auto mb-6">
+              <AiOutlineCheckCircle size={50} className="mx-auto" />
+              <h2 className="text-2xl font-bold">Success!</h2>
+              <p className="mt-2">
+                You have successfully logged in with your wallet.
+              </p>
+            </div>
+            <Button
+              colorScheme="orange"
+              onClick={() => {
+                disconnect?.();
+                setHasSigned(false);
+              }}
+            >
+              <AiOutlineDisconnect size={20} />
+              <span className="ml-2">Disconnect</span>
+            </Button>
+          </div>
+        );
+      }
     }
   }
 }

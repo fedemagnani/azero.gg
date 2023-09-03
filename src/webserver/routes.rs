@@ -60,8 +60,7 @@ pub async fn auth_handler(payload: AuthRequestPayload) -> WarpResult<impl Reply>
         let mut state = STATE.lock().await;
 
         println!(
-            "U64 max: {} checking guild id match: {} == {:?}",
-            u64::MAX,
+            "checking guild id match: {} == {:?}",
             payload.guild_id,
             state.bot_config.keys().collect::<Vec<_>>()
         );
@@ -80,14 +79,18 @@ pub async fn auth_handler(payload: AuthRequestPayload) -> WarpResult<impl Reply>
                     .or_insert_with(|| user_account_id);
 
                 println!("assigning role");
+
                 // assign the user the defined role on Discord
                 Utils::assign_role(payload.guild_id, payload.discord_id).await;
+                return Ok(reply::json(&Response {
+                    message: "User authorized.".to_string(),
+                }));
             }
         }
     } // state lock dropped here
 
     Ok(reply::json(&Response {
-        message: "User authorized.".to_string(),
+        message: "Requirements not satisfied.".to_string(),
     }))
 }
 

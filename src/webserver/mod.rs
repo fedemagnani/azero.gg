@@ -32,13 +32,7 @@ impl WebServer for WarpImpl {
     async fn serve_http(&self, port: Self::Port) {
         let api = WarpImpl::routes().await;
 
-        // let cors = warp::cors()
-        //     .allow_any_origin()
-        //     .allow_methods(vec!["POST", "OPTIONS", "GET"])
-        //     .build();
-
         let with_log = api.with(warp::log("api"));
-        // .with(cors);
 
         info!("Webserver listening on {}", port);
 
