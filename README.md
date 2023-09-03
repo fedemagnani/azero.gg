@@ -9,16 +9,6 @@ The Aleph-Zero GG is a multi-part application that allows users to join a Discor
 - [Solution in a nutshell](#solution-in-a-nutshell)
 - [Usage](#usage)
 
-## Overview
-
-This project aims to provide a seamless way for users to join a Discord server based on their Aleph-Zero token balance. The three main components work together to achieve this:
-
-1. **Discord Bot (Rust)**: The Discord bot is responsible for monitoring user interactions within the Discord server. When a user requests to join the server, the bot verifies their Aleph-Zero token balance and grants access if the criteria are met.
-
-2. **Web Server (Rust)**: The web server serves as an integration layer between the Discord bot and the React frontend. It handles authentication, authorization, and communication with the Aleph-Zero blockchain to check token balances.
-
-3. **React Frontend**: The React frontend provides a user-friendly interface for connecting the "Aleph Zero Signer" wallet, initiating the join server process, and displaying relevant information about the user's balance and server access status.
-
 ## Use cases
 
 This application is intended to support different use-case scenarios:
@@ -33,11 +23,25 @@ The project consists of three main components: a Discord bot written in Rust, a 
 
 The project is organized into three main components, each residing in its own directory:
 
-- **discord-bot**: Contains the Discord bot written in Rust using the Serenity library.
-- **web-server**: Contains the Rust web server responsible for handling API requests and interactions with the Aleph-Zero blockchain.
-- **react-frontend**: Contains the React frontend application that enables users to interact with the application and join the Discord server.
+1. **Discord Bot (Rust)**: The Discord bot is responsible for monitoring user interactions within the Discord server. When a user requests to join the server, the bot verifies their Aleph-Zero token balance and grants access if the criteria are met.
 
-![Sequence diagram](./docs/flow.jpg)
+2. **Web Server (Rust)**: The web server serves as an integration layer between the Discord bot and the React frontend. It handles authentication, authorization, and communication with the Aleph-Zero blockchain to check token balances.
+
+3. **React Frontend**: The React frontend provides a user-friendly interface for connecting the "Aleph Zero Signer" wallet, initiating the join server process, and displaying relevant information about the user's balance and server access status.
+
+```mermaid
+sequenceDiagram
+    User->>+Discord app: Click authorize button
+    Discord app->>+dApp: Navigate to dApp
+    dApp->>+dApp: User connects "Aleph-zero" wallet
+    dApp->>+dApp: User signs a message with wallet private key
+    dApp->>+Bot REST API: Send "address", "signature"
+    Bot REST API->>+Bot REST API: Verify signature
+    Bot REST API->>+Aleph-zero chain: Check on-chain balance
+    Bot REST API->>+Bot REST API: Persist user authorization
+    Bot REST API->>+Discord app: Enable user to the server
+    User->>+Discord app: Free to chat
+```
 
 ## Usage
 
