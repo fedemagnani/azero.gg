@@ -9,7 +9,6 @@ The Aleph-Zero GG is a multi-part application that allows users to join a Discor
 - [Solution in a nutshell](#solution-in-a-nutshell)
 - [Usage](#usage)
 
-
 ## Use cases
 
 This application is intended to support different use-case scenarios:
@@ -30,7 +29,19 @@ The project is organized into three main components, each residing in its own di
 
 3. **React Frontend**: The React frontend provides a user-friendly interface for connecting the "Aleph Zero Signer" wallet, initiating the join server process, and displaying relevant information about the user's balance and server access status.
 
-![Sequence diagram](./docs/flow.jpg)
+```mermaid
+sequenceDiagram
+    User->>+Discord app: Click authorize button
+    Discord app->>+dApp: Navigate to dApp
+    dApp->>+dApp: User connects "Aleph-zero" wallet
+    dApp->>+dApp: User signs a message with wallet private key
+    dApp->>+Bot REST API: Send "address", "signature"
+    Bot REST API->>+Bot REST API: Verify signature
+    Bot REST API->>+Aleph-zero chain: Check on-chain balance
+    Bot REST API->>+Bot REST API: Persist user authorization
+    Bot REST API->>+Discord app: Enable user to the server
+    User->>+Discord app: Free to chat
+```
 
 ## Usage
 
