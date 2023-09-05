@@ -1,6 +1,11 @@
-# Aleph-Zero GG
+# Azero.gg
+
+🎉 [Aleph-zero bounty winner project at ETHWarsaw 2023 (3rd place)](https://devpost.com/software/azero-gg) 🎉
 
 The Aleph-Zero GG is a multi-part application that allows users to join a Discord server based on their balance of a certain Aleph-Zero token.
+
+
+
 
 ## Table of Contents
 
